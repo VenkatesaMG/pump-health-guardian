@@ -19,48 +19,6 @@ import {
 } from "lucide-react";
 import { time } from "console";
 
-// const [mockCurrentData, setMockCurrentData] = useState([]);
-// useEffect(() => {
-//   axios
-//     .get("http:localhost:8000sensor_data")
-//     .then((response) => {
-//       setMockData(response.data);
-//       console.log("Sensor data : ", response.data);
-//     })
-//     .catch((error) => console.log(error));
-// });
-
-// Mock data for demonstration
-// const mockCurrentData = [
-//   { timestamp: "2023-04-01T00:00:00", value: 15.2 },
-//   { timestamp: "2023-04-01T01:00:00", value: 15.5 },
-//   { timestamp: "2023-04-01T02:00:00", value: 16.0 },
-//   { timestamp: "2023-04-01T03:00:00", value: 16.2 },
-//   { timestamp: "2023-04-01T04:00:00", value: 15.8 },
-//   { timestamp: "2023-04-01T05:00:00", value: 15.6 },
-//   { timestamp: "2023-04-01T06:00:00", value: 15.9 },
-//   { timestamp: "2023-04-01T07:00:00", value: 16.5 },
-//   { timestamp: "2023-04-01T08:00:00", value: 17.2 },
-//   { timestamp: "2023-04-01T09:00:00", value: 17.8 },
-//   { timestamp: "2023-04-01T10:00:00", value: 18.1 },
-//   { timestamp: "2023-04-01T11:00:00", value: 17.5 },
-// ];
-
-// const mockFlowData = [
-//   { timestamp: "2023-04-01T00:00:00", value: 120 },
-//   { timestamp: "2023-04-01T01:00:00", value: 122 },
-//   { timestamp: "2023-04-01T02:00:00", value: 119 },
-//   { timestamp: "2023-04-01T03:00:00", value: 121 },
-//   { timestamp: "2023-04-01T04:00:00", value: 118 },
-//   { timestamp: "2023-04-01T05:00:00", value: 115 },
-//   { timestamp: "2023-04-01T06:00:00", value: 117 },
-//   { timestamp: "2023-04-01T07:00:00", value: 123 },
-//   { timestamp: "2023-04-01T08:00:00", value: 127 },
-//   { timestamp: "2023-04-01T09:00:00", value: 125 },
-//   { timestamp: "2023-04-01T10:00:00", value: 128 },
-//   { timestamp: "2023-04-01T11:00:00", value: 130 },
-// ];
-
 const mockTemperatureData = [
   { timestamp: "2023-04-01T00:00:00", value: 65 },
   { timestamp: "2023-04-01T01:00:00", value: 66 },
@@ -151,26 +109,26 @@ export const Dashboard = () => {
 
   useEffect(() => {
     axios
-      .get(`http://localhost:5000/api/pumps/${pump}`)
+      .get(`http://localhost:5000/api/pumps/${selectedPump}`)
       .then((response) => {
         setMockData(response.data);
       })
       .catch((error) => console.log("Error", error));
 
     axios
-      .get(`http://localhost:5000/api/pumps/${pump}/runtime_active`)
+      .get(`http://localhost:5000/api/pumps/${selectedPump}/runtime_active`)
       .then((response) => setOperatingHours(response.data.runtime_hours))
       .catch((error) => console.log(error));
 
     axios
-      .get(`http://localhost:5000/api/filtered_current/${pump}`)
+      .get(`http://localhost:5000/api/filtered_current/${selectedPump}`)
       .then((response) => {
         setFilteredCurrent(response.data.current);
         setFilteredFlow(response.data.flowRate);
         setAllDone(true);
       })
       .catch((error) => console.log(error));
-  }, []);
+  }, [selectedPump]);
 
   useEffect(() => {
     if (allDone == true) {
@@ -263,6 +221,7 @@ export const Dashboard = () => {
     console.log("Mock Data", mockCurrentData.at(-1));
     return () => clearInterval(interval);
   }, []);
+
   return (
     <div className="flex flex-col gap-4 p-4">
       <div className="flex justify-between items-center">
