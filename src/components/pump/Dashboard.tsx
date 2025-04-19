@@ -6,6 +6,7 @@ import { MetricCard } from "./MetricCard";
 import { TrendChart } from "./TrendChart";
 import { AlertItem } from "./AlertItem";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import axios from "axios";
 import {
   Select,
@@ -123,12 +124,16 @@ export const Dashboard = () => {
       .catch((error) => console.log("Error", error));
 
     axios
-      .get(`https://iot-backend-98ll.onrender.com/api/pumps/${selectedPump}/runtime_active`)
+      .get(
+        `https://iot-backend-98ll.onrender.com/api/pumps/${selectedPump}/runtime_active`
+      )
       .then((response) => setOperatingHours(response.data.runtime_hours))
       .catch((error) => console.log(error));
 
     axios
-      .get(`https://iot-backend-98ll.onrender.com/api/filtered_current/${selectedPump}`)
+      .get(
+        `https://iot-backend-98ll.onrender.com/api/filtered_current/${selectedPump}`
+      )
       .then((response) => {
         setFilteredCurrent(response.data.current);
         setFilteredFlow(response.data.flowRate);
@@ -331,7 +336,12 @@ export const Dashboard = () => {
               title="Flow Rate over Time"
               data={mockFlowData}
               dataKeys={[
-                { key: "value", name: "Original", color: "#3b82f6", unit: "A" },
+                {
+                  key: "value",
+                  name: "Original",
+                  color: "#3b82f6",
+                  unit: "mL/min",
+                },
                 {
                   key: "fil_value",
                   name: "Filtered",
@@ -397,17 +407,16 @@ export const Dashboard = () => {
               unit="hours"
               icon={<Settings className="h-4 w-4" />}
             />
+            <Button asChild>
+              <a
+                href="https://iot-backend-ml-mtxxkw7lg29yrxcg3j68g2.streamlit.app/"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Go to External Site
+              </a>
+            </Button>
           </div>
-
-          <div className="grid grid-cols-1 gap-4">
-            <TrendChart
-              title="Health Score Over Time"
-              data={mockHealthScoreData}
-              color="#f59e0b"
-              unit="%"
-            />
-          </div>
-
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Card>
               <CardHeader>
