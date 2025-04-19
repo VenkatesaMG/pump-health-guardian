@@ -409,7 +409,7 @@ export const Dashboard = () => {
             />
             <Button asChild>
               <a
-                href="https://iot-backend-ml-mtxxkw7lg29yrxcg3j68g2.streamlit.app/"
+                href="https://iot-backend-ml.streamlit.app/"
                 target="_blank"
                 rel="noopener noreferrer"
               >
