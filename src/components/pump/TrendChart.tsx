@@ -25,7 +25,6 @@ interface TrendChartProps {
   className?: string;
   timeFormat?: "hour" | "day" | "month";
 }
-
 export const TrendChart = ({
   title,
   data,
@@ -50,7 +49,6 @@ export const TrendChart = ({
         return tickItem;
     }
   };
-
   return (
     <Card className={cn("w-full h-full", className)}>
       <CardHeader className="pb-2">

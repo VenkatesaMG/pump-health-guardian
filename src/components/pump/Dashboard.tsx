@@ -138,6 +138,7 @@ export const Dashboard = () => {
   const [avgFlowRate, setAvgFlowRate] = useState(0);
   const [operatingHours, setOperatingHours] = useState(0);
   const [filteredCurrent, setFilteredCurrent] = useState([]);
+  const [filteredFlow, setFilteredFlow] = useState([]);
 
   function formatTimeStamp(stamp: String) {
     const [dd, mm, yy, hh, min, ss] = stamp.split("_");
@@ -160,7 +161,10 @@ export const Dashboard = () => {
 
     axios
       .get(`http://localhost:5000/api/filtered_current/${pump}`)
-      .then((response) => setFilteredCurrent(response.data))
+      .then((response) => {
+        setFilteredCurrent(response.data.current);
+        setFilteredFlow(response.data.flowRate);
+      })
       .catch((error) => console.log(error));
   }, []);
 
@@ -183,6 +187,7 @@ export const Dashboard = () => {
         tempFlowRate.push({
           timestamp: formattedTimestamp,
           value: reading.flowRate,
+          fil_value: filteredFlow[index],
         });
         avgFlowRate += reading.flowRate;
         index += 1;
@@ -204,6 +209,7 @@ export const Dashboard = () => {
       tempPower += mockData[key].electricalEnergy;
       tempFlow += mockData[key].flowRate;
     }
+
     tempCur /= 5;
     tempPower /= 5;
     tempPower = parseFloat(tempPower.toFixed(2));
@@ -224,7 +230,6 @@ export const Dashboard = () => {
     setMockFlowData(tempFlowRate);
     setFlowRate(tempFlow);
   }, []);
-  console.log("Render");
   return (
     <div className="flex flex-col gap-4 p-4">
       <div className="flex justify-between items-center">
@@ -291,27 +296,33 @@ export const Dashboard = () => {
               unit="Pascal"
               color="warning"
             />
-            <GaugeChart
-              title="Temperature"
-              value={69}
-              max={100}
-              unit="°C"
-              color="default"
-            />
           </div>
-
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <TrendChart
               title="Current Over Time"
               data={mockCurrentData}
-              color="#3b82f6"
-              unit="A"
+              dataKeys={[
+                { key: "value", name: "Original", color: "#3b82f6", unit: "A" },
+                {
+                  key: "fil_value",
+                  name: "Filtered",
+                  color: "#10b981",
+                  unit: "A",
+                },
+              ]}
             />
             <TrendChart
-              title="Flow Rate Over Time"
+              title="Flow Rate over Time"
               data={mockFlowData}
-              color="#10b981"
-              unit="L/min"
+              dataKeys={[
+                { key: "value", name: "Original", color: "#3b82f6", unit: "A" },
+                {
+                  key: "fil_value",
+                  name: "Filtered",
+                  color: "#10b981",
+                  unit: "mL/min",
+                },
+              ]}
             />
           </div>
         </TabsContent>

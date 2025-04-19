@@ -1,5 +1,3 @@
-
-import React from "react";
 import { TrendChart } from "@/components/pump/TrendChart";
 
 // Mock data for demonstration
