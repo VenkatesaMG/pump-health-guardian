@@ -240,14 +240,15 @@ export const Dashboard = () => {
       </div>
 
       <Tabs defaultValue="monitoring">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="monitoring">Monitoring</TabsTrigger>
+          <TabsTrigger value="performance">Performance</TabsTrigger>
           <TabsTrigger value="health">Health</TabsTrigger>
           <TabsTrigger value="alerts">Alerts</TabsTrigger>
           <TabsTrigger value="history">History</TabsTrigger>
         </TabsList>
 
-        {/* Real-time Monitoring Section */}
+        {/* Monitoring Tab */}
         <TabsContent value="monitoring" className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <MetricCard
@@ -312,6 +313,24 @@ export const Dashboard = () => {
               data={mockFlowData}
               color="#10b981"
               unit="L/min"
+            />
+          </div>
+        </TabsContent>
+
+        {/* Performance Tab */}
+        <TabsContent value="performance" className="space-y-4">
+          <div className="grid grid-cols-1 gap-4">
+            <TrendChart
+              title="Current Over Time"
+              data={mockCurrentData}
+              color="#3b82f6"
+              unit="A"
+            />
+            <TrendChart
+              title="Flow Rate Over Time"
+              data={mockFlowData}
+              color="#10b981"
+              unit=" L/min"
             />
           </div>
         </TabsContent>
