@@ -116,19 +116,19 @@ export const Dashboard = () => {
 
   useEffect(() => {
     axios
-      .get(`http://localhost:5000/api/pumps/${selectedPump}`)
+      .get(`https://iot-backend-98ll.onrender.com/api/pumps/${selectedPump}`)
       .then((response) => {
         setMockData(response.data);
       })
       .catch((error) => console.log("Error", error));
 
     axios
-      .get(`http://localhost:5000/api/pumps/${selectedPump}/runtime_active`)
+      .get(`https://iot-backend-98ll.onrender.com/api/pumps/${selectedPump}/runtime_active`)
       .then((response) => setOperatingHours(response.data.runtime_hours))
       .catch((error) => console.log(error));
 
     axios
-      .get(`http://localhost:5000/api/filtered_current/${selectedPump}`)
+      .get(`https://iot-backend-98ll.onrender.com/api/filtered_current/${selectedPump}`)
       .then((response) => {
         setFilteredCurrent(response.data.current);
         setFilteredFlow(response.data.flowRate);
