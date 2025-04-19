@@ -1,5 +1,4 @@
-
-import React from "react";
+import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { GaugeChart } from "./GaugeChart";
 import { StatusIndicator } from "./StatusIndicator";
@@ -7,38 +6,60 @@ import { MetricCard } from "./MetricCard";
 import { TrendChart } from "./TrendChart";
 import { AlertItem } from "./AlertItem";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Activity, Battery, Droplet, Gauge, Info, Settings, Thermometer, Zap } from "lucide-react";
+import axios from "axios";
+import {
+  Activity,
+  Battery,
+  Droplet,
+  Gauge,
+  Info,
+  Settings,
+  Thermometer,
+  Zap,
+} from "lucide-react";
+import { time } from "console";
+
+// const [mockCurrentData, setMockCurrentData] = useState([]);
+// useEffect(() => {
+//   axios
+//     .get("http:localhost:8000sensor_data")
+//     .then((response) => {
+//       setMockData(response.data);
+//       console.log("Sensor data : ", response.data);
+//     })
+//     .catch((error) => console.log(error));
+// });
 
 // Mock data for demonstration
-const mockCurrentData = [
-  { timestamp: "2023-04-01T00:00:00", value: 15.2 },
-  { timestamp: "2023-04-01T01:00:00", value: 15.5 },
-  { timestamp: "2023-04-01T02:00:00", value: 16.0 },
-  { timestamp: "2023-04-01T03:00:00", value: 16.2 },
-  { timestamp: "2023-04-01T04:00:00", value: 15.8 },
-  { timestamp: "2023-04-01T05:00:00", value: 15.6 },
-  { timestamp: "2023-04-01T06:00:00", value: 15.9 },
-  { timestamp: "2023-04-01T07:00:00", value: 16.5 },
-  { timestamp: "2023-04-01T08:00:00", value: 17.2 },
-  { timestamp: "2023-04-01T09:00:00", value: 17.8 },
-  { timestamp: "2023-04-01T10:00:00", value: 18.1 },
-  { timestamp: "2023-04-01T11:00:00", value: 17.5 },
-];
+// const mockCurrentData = [
+//   { timestamp: "2023-04-01T00:00:00", value: 15.2 },
+//   { timestamp: "2023-04-01T01:00:00", value: 15.5 },
+//   { timestamp: "2023-04-01T02:00:00", value: 16.0 },
+//   { timestamp: "2023-04-01T03:00:00", value: 16.2 },
+//   { timestamp: "2023-04-01T04:00:00", value: 15.8 },
+//   { timestamp: "2023-04-01T05:00:00", value: 15.6 },
+//   { timestamp: "2023-04-01T06:00:00", value: 15.9 },
+//   { timestamp: "2023-04-01T07:00:00", value: 16.5 },
+//   { timestamp: "2023-04-01T08:00:00", value: 17.2 },
+//   { timestamp: "2023-04-01T09:00:00", value: 17.8 },
+//   { timestamp: "2023-04-01T10:00:00", value: 18.1 },
+//   { timestamp: "2023-04-01T11:00:00", value: 17.5 },
+// ];
 
-const mockFlowData = [
-  { timestamp: "2023-04-01T00:00:00", value: 120 },
-  { timestamp: "2023-04-01T01:00:00", value: 122 },
-  { timestamp: "2023-04-01T02:00:00", value: 119 },
-  { timestamp: "2023-04-01T03:00:00", value: 121 },
-  { timestamp: "2023-04-01T04:00:00", value: 118 },
-  { timestamp: "2023-04-01T05:00:00", value: 115 },
-  { timestamp: "2023-04-01T06:00:00", value: 117 },
-  { timestamp: "2023-04-01T07:00:00", value: 123 },
-  { timestamp: "2023-04-01T08:00:00", value: 127 },
-  { timestamp: "2023-04-01T09:00:00", value: 125 },
-  { timestamp: "2023-04-01T10:00:00", value: 128 },
-  { timestamp: "2023-04-01T11:00:00", value: 130 },
-];
+// const mockFlowData = [
+//   { timestamp: "2023-04-01T00:00:00", value: 120 },
+//   { timestamp: "2023-04-01T01:00:00", value: 122 },
+//   { timestamp: "2023-04-01T02:00:00", value: 119 },
+//   { timestamp: "2023-04-01T03:00:00", value: 121 },
+//   { timestamp: "2023-04-01T04:00:00", value: 118 },
+//   { timestamp: "2023-04-01T05:00:00", value: 115 },
+//   { timestamp: "2023-04-01T06:00:00", value: 117 },
+//   { timestamp: "2023-04-01T07:00:00", value: 123 },
+//   { timestamp: "2023-04-01T08:00:00", value: 127 },
+//   { timestamp: "2023-04-01T09:00:00", value: 125 },
+//   { timestamp: "2023-04-01T10:00:00", value: 128 },
+//   { timestamp: "2023-04-01T11:00:00", value: 130 },
+// ];
 
 const mockTemperatureData = [
   { timestamp: "2023-04-01T00:00:00", value: 65 },
@@ -102,12 +123,116 @@ const mockAlerts = [
 ];
 
 export const Dashboard = () => {
+  const [pump, setPump] = useState("pump_001");
+  const [mockData, setMockData] = useState([]);
+  const [mockCurrentData, setMockCurrentData] = useState([]);
+  const [mockFlowData, setMockFlowData] = useState([]);
+  const [flowRate, setFlowRate] = useState(0);
+  const [voltage, setVoltage] = useState(0);
+  const [power, setPower] = useState(0.0);
+  const [current, setCurrent] = useState(0);
+  const [inCurrent, setInCurrent] = useState(0);
+  const [inPower, setInPower] = useState(0);
+  const [pressure, setPressure] = useState(0);
+  const [avgCurrent, setAvgCurrent] = useState(0);
+  const [avgFlowRate, setAvgFlowRate] = useState(0);
+  const [operatingHours, setOperatingHours] = useState(0);
+  const [filteredCurrent, setFilteredCurrent] = useState([]);
+
+  function formatTimeStamp(stamp: String) {
+    const [dd, mm, yy, hh, min, ss] = stamp.split("_");
+    const formatted = `${yy}-${mm}-${dd}T${hh}:${min}:${ss}`;
+    return formatted;
+  }
+
+  useEffect(() => {
+    axios
+      .get(`http://localhost:5000/api/pumps/${pump}`)
+      .then((response) => {
+        setMockData(response.data);
+      })
+      .catch((error) => console.log("Error", error));
+
+    axios
+      .get(`http://localhost:5000/api/pumps/${pump}/runtime_active`)
+      .then((response) => setOperatingHours(response.data.runtime_hours))
+      .catch((error) => console.log(error));
+
+    axios
+      .get(`http://localhost:5000/api/filtered_current/${pump}`)
+      .then((response) => setFilteredCurrent(response.data))
+      .catch((error) => console.log(error));
+  }, []);
+
+  useEffect(() => {
+    let tempCurrent = [];
+    let tempFlowRate = [];
+    let avgCurrent = 0;
+    let avgFlowRate = 0;
+    let index = 0;
+    for (const timestamp in mockData) {
+      if (mockData.hasOwnProperty(timestamp)) {
+        const reading = mockData[timestamp];
+        const formattedTimestamp = formatTimeStamp(reading.timestamp);
+        tempCurrent.push({
+          timestamp: formattedTimestamp,
+          value: reading.current,
+          fil_value: filteredCurrent[index],
+        });
+        avgCurrent += reading.current;
+        tempFlowRate.push({
+          timestamp: formattedTimestamp,
+          value: reading.flowRate,
+        });
+        avgFlowRate += reading.flowRate;
+        index += 1;
+      }
+    }
+    avgCurrent = avgCurrent / index + 1;
+    avgFlowRate = avgFlowRate / index + 1;
+    avgCurrent = parseFloat(avgCurrent.toFixed(2));
+    avgFlowRate = parseFloat(avgFlowRate.toFixed(2));
+    const keys = Object.keys(mockData);
+    const lastFiveKeys = keys.slice(-5);
+    let tempCur = 0;
+    let tempPower = 0;
+    let tempFlow = 0;
+    let tempVoltage = 0;
+    for (let i = 0; i < lastFiveKeys.length; i++) {
+      const key = lastFiveKeys[i];
+      tempCur += mockData[key].current;
+      tempPower += mockData[key].electricalEnergy;
+      tempFlow += mockData[key].flowRate;
+    }
+    tempCur /= 5;
+    tempPower /= 5;
+    tempPower = parseFloat(tempPower.toFixed(2));
+    tempVoltage = (tempPower * 1000) / tempCur;
+    tempVoltage = parseFloat(tempVoltage.toFixed(2));
+    let tempPressure =
+      0.5 * 1000 * Math.pow(tempFlow / Math.pow(10, 6) / 60 / 0.0000282735, 2);
+    tempPressure = parseFloat(tempPressure.toFixed(2));
+    setAvgCurrent(avgCurrent);
+    setAvgFlowRate(avgFlowRate);
+    setPressure(tempPressure);
+    setInCurrent(tempCur - current);
+    setCurrent(tempCur);
+    setInPower(tempPower - power);
+    setPower(tempPower);
+    setVoltage(tempVoltage);
+    setMockCurrentData(tempCurrent);
+    setMockFlowData(tempFlowRate);
+    setFlowRate(tempFlow);
+  }, []);
+  console.log("Render");
   return (
     <div className="flex flex-col gap-4 p-4">
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold">Pump Health Guardian</h1>
-          <p className="text-muted-foreground">Real-time pump monitoring dashboard</p>
+          <p className="text-muted-foreground">
+            Real-time pump monitoring dashboard
+          </p>
         </div>
         <div className="flex items-center gap-2">
           <StatusIndicator status="healthy" label="System Status" />
@@ -127,15 +252,15 @@ export const Dashboard = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <MetricCard
               title="Current"
-              value={17.8}
-              unit="A"
-              change={5.2}
+              value={current}
+              unit="mA"
+              change={inCurrent}
               trend="up"
               icon={<Zap className="h-4 w-4" />}
             />
             <MetricCard
               title="Voltage"
-              value={220}
+              value={voltage}
               unit="V"
               change={0}
               trend="neutral"
@@ -143,9 +268,9 @@ export const Dashboard = () => {
             />
             <MetricCard
               title="Power Consumption"
-              value={3.9}
+              value={power}
               unit="kW"
-              change={3.1}
+              change={inPower}
               trend="up"
               icon={<Activity className="h-4 w-4" />}
             />
@@ -154,16 +279,16 @@ export const Dashboard = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <GaugeChart
               title="Flow Rate"
-              value={130}
-              max={200}
-              unit="L/min"
+              value={flowRate}
+              max={280}
+              unit="mL/min"
               color="default"
             />
             <GaugeChart
               title="Pressure"
-              value={4.2}
+              value={pressure}
               max={10}
-              unit="Bar"
+              unit="Pascal"
               color="warning"
             />
             <GaugeChart
@@ -214,7 +339,7 @@ export const Dashboard = () => {
             />
             <MetricCard
               title="Operating Hours"
-              value="3,450"
+              value={operatingHours}
               unit="hours"
               icon={<Settings className="h-4 w-4" />}
             />
@@ -232,7 +357,9 @@ export const Dashboard = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Card>
               <CardHeader>
-                <CardTitle className="text-sm font-medium">Maintenance Schedule</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  Maintenance Schedule
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
@@ -254,7 +381,9 @@ export const Dashboard = () => {
 
             <Card>
               <CardHeader>
-                <CardTitle className="text-sm font-medium">Component Status</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  Component Status
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
@@ -264,7 +393,11 @@ export const Dashboard = () => {
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-sm">Bearings</span>
-                    <StatusIndicator status="warning" label="Attention" size="sm" />
+                    <StatusIndicator
+                      status="warning"
+                      label="Attention"
+                      size="sm"
+                    />
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-sm">Seals</span>
@@ -284,7 +417,9 @@ export const Dashboard = () => {
         <TabsContent value="alerts" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle className="text-sm font-medium">Recent Alerts</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Recent Alerts
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
@@ -304,7 +439,9 @@ export const Dashboard = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Card>
               <CardHeader>
-                <CardTitle className="text-sm font-medium">Alert Settings</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  Alert Settings
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
@@ -330,21 +467,29 @@ export const Dashboard = () => {
 
             <Card>
               <CardHeader>
-                <CardTitle className="text-sm font-medium">Notification Settings</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  Notification Settings
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
                   <div className="flex justify-between items-center">
                     <span className="text-sm">Email Notifications</span>
-                    <span className="text-sm font-medium text-green-600">Enabled</span>
+                    <span className="text-sm font-medium text-green-600">
+                      Enabled
+                    </span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-sm">SMS Alerts</span>
-                    <span className="text-sm font-medium text-green-600">Enabled</span>
+                    <span className="text-sm font-medium text-green-600">
+                      Enabled
+                    </span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-sm">System Alerts</span>
-                    <span className="text-sm font-medium text-green-600">Enabled</span>
+                    <span className="text-sm font-medium text-green-600">
+                      Enabled
+                    </span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-sm">Alert History Retention</span>
@@ -361,26 +506,34 @@ export const Dashboard = () => {
           <div className="grid grid-cols-1 gap-4">
             <Card>
               <CardHeader>
-                <CardTitle className="text-sm font-medium">Historical Data View</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  Historical Data View
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="flex items-center justify-center p-4 bg-muted rounded-md">
                     <div className="text-center">
-                      <p className="text-3xl font-bold">124.3</p>
-                      <p className="text-sm text-muted-foreground">Avg Flow Rate (L/min)</p>
+                      <p className="text-3xl font-bold">{avgFlowRate}</p>
+                      <p className="text-sm text-muted-foreground">
+                        Avg Flow Rate (mL/min)
+                      </p>
                     </div>
                   </div>
                   <div className="flex items-center justify-center p-4 bg-muted rounded-md">
                     <div className="text-center">
-                      <p className="text-3xl font-bold">16.2</p>
-                      <p className="text-sm text-muted-foreground">Avg Current (A)</p>
+                      <p className="text-3xl font-bold">{avgCurrent}</p>
+                      <p className="text-sm text-muted-foreground">
+                        Avg Current (mA)
+                      </p>
                     </div>
                   </div>
                   <div className="flex items-center justify-center p-4 bg-muted rounded-md">
                     <div className="text-center">
                       <p className="text-3xl font-bold">68</p>
-                      <p className="text-sm text-muted-foreground">Avg Temperature (°C)</p>
+                      <p className="text-sm text-muted-foreground">
+                        Avg Temperature (°C)
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -405,7 +558,9 @@ export const Dashboard = () => {
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-sm font-medium">Pump Metadata</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Pump Metadata
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -416,7 +571,9 @@ export const Dashboard = () => {
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-sm">Model</span>
-                    <span className="text-sm font-medium">XP-5000 Industrial</span>
+                    <span className="text-sm font-medium">
+                      XP-5000 Industrial
+                    </span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-sm">Installation Date</span>
@@ -430,7 +587,9 @@ export const Dashboard = () => {
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-sm">Location</span>
-                    <span className="text-sm font-medium">Building C - Area 4</span>
+                    <span className="text-sm font-medium">
+                      Building C - Area 4
+                    </span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-sm">Responsible Technician</span>
