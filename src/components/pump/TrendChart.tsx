@@ -1,3 +1,4 @@
+
 import {
   Area,
   AreaChart,
@@ -24,15 +25,24 @@ interface TrendChartProps {
   dataKeys?: DataKeyConfig[];
   className?: string;
   timeFormat?: "hour" | "day" | "month";
+  color?: string; // Added color prop
+  unit?: string; // Added unit prop
 }
 
 export const TrendChart = ({
   title,
   data,
-  dataKeys = [{ key: "value", name: "Value", color: "#3b82f6", unit: "" }],
+  dataKeys,
   className,
   timeFormat = "hour",
+  color = "#3b82f6", // Default blue color
+  unit = "", // Default empty unit
 }: TrendChartProps) => {
+  // If dataKeys is not provided but color and/or unit are, create a default dataKey
+  const resolvedDataKeys = dataKeys || [
+    { key: "value", name: "Value", color: color, unit: unit },
+  ];
+
   const formatXAxis = (tickItem: string) => {
     const date = new Date(tickItem);
 
@@ -64,7 +74,7 @@ export const TrendChart = ({
               margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
             >
               <defs>
-                {dataKeys.map((config) => (
+                {resolvedDataKeys.map((config) => (
                   <linearGradient
                     key={config.key}
                     id={`color-${config.key}`}
@@ -95,13 +105,13 @@ export const TrendChart = ({
                 tick={{ fontSize: 10 }}
               />
               <YAxis
-                tickFormatter={(value) => `${value}${dataKeys[0]?.unit || ""}`}
+                tickFormatter={(value) => `${value}${resolvedDataKeys[0]?.unit || ""}`}
                 width={35}
                 tick={{ fontSize: 10 }}
               />
               <Tooltip
                 formatter={(value: any, name: string, props: any) => {
-                  const found = dataKeys.find((k) => k.key === props.dataKey);
+                  const found = resolvedDataKeys.find((k) => k.key === props.dataKey);
                   return [
                     `${value}${found?.unit || ""}`,
                     found?.name || props.dataKey,
@@ -110,7 +120,7 @@ export const TrendChart = ({
                 labelFormatter={(label) => new Date(label).toLocaleString()}
               />
               <Legend />
-              {dataKeys.map((config) => (
+              {resolvedDataKeys.map((config) => (
                 <Area
                   key={config.key}
                   type="monotone"
