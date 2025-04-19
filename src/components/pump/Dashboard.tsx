@@ -8,6 +8,13 @@ import { AlertItem } from "./AlertItem";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import axios from "axios";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Activity,
   Battery,
   Droplet,
@@ -82,7 +89,7 @@ const mockHealthScoreData = [
 
 const threshold = 600;
 export const Dashboard = () => {
-  const [pump, setPump] = useState("pump_001");
+  const [selectedPump, setSelectedPump] = useState("pump_001");
   const [mockData, setMockData] = useState([]);
   const [mockCurrentData, setMockCurrentData] = useState([]);
   const [mockFlowData, setMockFlowData] = useState([]);
@@ -128,6 +135,7 @@ export const Dashboard = () => {
         setAllDone(true);
       })
       .catch((error) => console.log(error));
+    console.log("Selected Pump", selectedPump);
   }, [selectedPump]);
 
   useEffect(() => {
@@ -194,7 +202,7 @@ export const Dashboard = () => {
       setMockFlowData(tempFlowRate);
       setFlowRate(tempFlow);
     }
-  }, [allDone]);
+  }, [allDone, selectedPump]);
 
   //   id: 4,
   //   title: "Temperature Rising",
@@ -234,6 +242,21 @@ export const Dashboard = () => {
         <div className="flex items-center gap-2">
           <StatusIndicator status="healthy" label="System Status" />
         </div>
+        <div className="flex justify-end mb-4">
+          <Select
+            defaultValue="pump_001"
+            onValueChange={(value) => setSelectedPump(value)}
+          >
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Select pump" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="pump_001">Pump 001</SelectItem>
+              <SelectItem value="pump_002">Pump 002</SelectItem>
+              <SelectItem value="pump_003">Pump 003</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       <Tabs defaultValue="monitoring">
@@ -267,8 +290,8 @@ export const Dashboard = () => {
             <MetricCard
               title="Power Consumption"
               value={power}
-              unit="kW"
-              change={inPower}
+              unit="W"
+              change={parseFloat(inPower.toFixed(2))}
               trend="up"
               icon={<Activity className="h-4 w-4" />}
             />
@@ -361,11 +384,6 @@ export const Dashboard = () => {
               max={100}
               unit="%"
               color={82 > 90 ? "success" : 82 > 70 ? "warning" : "danger"}
-            />
-            <MetricCard
-              title="Vibration Analysis"
-              value="Normal"
-              icon={<Activity className="h-4 w-4" />}
             />
             <MetricCard
               title="Estimated RUL"
@@ -564,34 +582,10 @@ export const Dashboard = () => {
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center justify-center p-4 bg-muted rounded-md">
-                    <div className="text-center">
-                      <p className="text-3xl font-bold">68</p>
-                      <p className="text-sm text-muted-foreground">
-                        Avg Temperature (°C)
-                      </p>
-                    </div>
-                  </div>
                 </div>
               </CardContent>
             </Card>
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <TrendChart
-              title="Temperature Trend"
-              data={mockTemperatureData}
-              color="#ef4444"
-              unit="°C"
-            />
-            <TrendChart
-              title="Health Score Trend"
-              data={mockHealthScoreData}
-              color="#f59e0b"
-              unit="%"
-            />
-          </div>
-
           <Card>
             <CardHeader>
               <CardTitle className="text-sm font-medium">
