@@ -91,37 +91,38 @@ const mockHealthScoreData = [
   { timestamp: "2023-04-01T11:00:00", value: 82 },
 ];
 
-const mockAlerts = [
-  {
-    id: 1,
-    title: "High Current Draw Detected",
-    description: "Current draw is exceeding normal range by 15%",
-    severity: "warning",
-    timestamp: "2023-04-01T09:45:00",
-  },
-  {
-    id: 2,
-    title: "Vibration Warning",
-    description: "Unusual vibration patterns detected, maintenance recommended",
-    severity: "warning",
-    timestamp: "2023-04-01T08:30:00",
-  },
-  {
-    id: 3,
-    title: "Successful Maintenance",
-    description: "Scheduled maintenance completed successfully",
-    severity: "info",
-    timestamp: "2023-03-28T14:20:00",
-  },
-  {
-    id: 4,
-    title: "Temperature Rising",
-    description: "Motor temperature has increased 10°C in the last hour",
-    severity: "error",
-    timestamp: "2023-04-01T10:15:00",
-  },
-];
+// const mockAlerts = [
+//   {
+//     id: 1,
+//     title: "High Current Draw Detected",
+//     description: "Current draw is exceeding normal range by 15%",
+//     severity: "warning",
+//     timestamp: "2023-04-01T09:45:00",
+//   },
+//   {
+//     id: 2,
+//     title: "Vibration Warning",
+//     description: "Unusual vibration patterns detected, maintenance recommended",
+//     severity: "warning",
+//     timestamp: "2023-04-01T08:30:00",
+//   },
+//   {
+//     id: 3,
+//     title: "Successful Maintenance",
+//     description: "Scheduled maintenance completed successfully",
+//     severity: "info",
+//     timestamp: "2023-03-28T14:20:00",
+//   },
+//   {
+//     id: 4,
+//     title: "Temperature Rising",
+//     description: "Motor temperature has increased 10°C in the last hour",
+//     severity: "error",
+//     timestamp: "2023-04-01T10:15:00",
+//   },
+// ];
 
+const threshold = 600;
 export const Dashboard = () => {
   const [pump, setPump] = useState("pump_001");
   const [mockData, setMockData] = useState([]);
@@ -139,6 +140,8 @@ export const Dashboard = () => {
   const [operatingHours, setOperatingHours] = useState(0);
   const [filteredCurrent, setFilteredCurrent] = useState([]);
   const [filteredFlow, setFilteredFlow] = useState([]);
+  const [mockAlerts, setMockAlerts] = useState([]);
+  const [allDone, setAllDone] = useState(false);
 
   function formatTimeStamp(stamp: String) {
     const [dd, mm, yy, hh, min, ss] = stamp.split("_");
@@ -164,71 +167,101 @@ export const Dashboard = () => {
       .then((response) => {
         setFilteredCurrent(response.data.current);
         setFilteredFlow(response.data.flowRate);
+        setAllDone(true);
       })
       .catch((error) => console.log(error));
   }, []);
 
   useEffect(() => {
-    let tempCurrent = [];
-    let tempFlowRate = [];
-    let avgCurrent = 0;
-    let avgFlowRate = 0;
-    let index = 0;
-    for (const timestamp in mockData) {
-      if (mockData.hasOwnProperty(timestamp)) {
-        const reading = mockData[timestamp];
-        const formattedTimestamp = formatTimeStamp(reading.timestamp);
-        tempCurrent.push({
-          timestamp: formattedTimestamp,
-          value: reading.current,
-          fil_value: filteredCurrent[index],
-        });
-        avgCurrent += reading.current;
-        tempFlowRate.push({
-          timestamp: formattedTimestamp,
-          value: reading.flowRate,
-          fil_value: filteredFlow[index],
-        });
-        avgFlowRate += reading.flowRate;
-        index += 1;
+    if (allDone == true) {
+      let tempCurrent = [];
+      let tempFlowRate = [];
+      let avgCurrent = 0;
+      let avgFlowRate = 0;
+      let index = 0;
+      for (const timestamp in mockData) {
+        if (mockData.hasOwnProperty(timestamp)) {
+          const reading = mockData[timestamp];
+          const formattedTimestamp = formatTimeStamp(reading.timestamp);
+          tempCurrent.push({
+            timestamp: formattedTimestamp,
+            value: reading.current,
+            fil_value: filteredCurrent[index],
+          });
+          avgCurrent += reading.current;
+          tempFlowRate.push({
+            timestamp: formattedTimestamp,
+            value: reading.flowRate,
+            fil_value: filteredFlow[index],
+          });
+          avgFlowRate += reading.flowRate;
+          index += 1;
+        }
       }
+      avgCurrent = avgCurrent / index + 1;
+      avgFlowRate = avgFlowRate / index + 1;
+      avgCurrent = parseFloat(avgCurrent.toFixed(2));
+      avgFlowRate = parseFloat(avgFlowRate.toFixed(2));
+      const keys = Object.keys(mockData);
+      const lastFiveKeys = keys.slice(-5);
+      let tempCur = 0;
+      let tempPower = 0;
+      let tempFlow = 0;
+      let tempVoltage = 0;
+      for (let i = 0; i < lastFiveKeys.length; i++) {
+        const key = lastFiveKeys[i];
+        tempCur += mockData[key].current;
+        tempPower += mockData[key].electricalEnergy;
+        tempFlow += mockData[key].flowRate;
+      }
+      tempCur /= 5;
+      tempPower /= 5;
+      tempPower = parseFloat(tempPower.toFixed(2));
+      tempVoltage = (tempPower * 1000) / tempCur;
+      tempVoltage = parseFloat(tempVoltage.toFixed(2));
+      let tempPressure =
+        0.5 *
+        1000 *
+        Math.pow(tempFlow / Math.pow(10, 6) / 60 / 0.0000282735, 2);
+      tempPressure = parseFloat(tempPressure.toFixed(2));
+      setAvgCurrent(avgCurrent);
+      setAvgFlowRate(avgFlowRate);
+      setPressure(tempPressure);
+      setInCurrent(tempCur - current);
+      setCurrent(tempCur);
+      setInPower(tempPower - power);
+      setPower(tempPower);
+      setVoltage(tempVoltage);
+      setMockCurrentData(tempCurrent);
+      setMockFlowData(tempFlowRate);
+      setFlowRate(tempFlow);
     }
-    avgCurrent = avgCurrent / index + 1;
-    avgFlowRate = avgFlowRate / index + 1;
-    avgCurrent = parseFloat(avgCurrent.toFixed(2));
-    avgFlowRate = parseFloat(avgFlowRate.toFixed(2));
-    const keys = Object.keys(mockData);
-    const lastFiveKeys = keys.slice(-5);
-    let tempCur = 0;
-    let tempPower = 0;
-    let tempFlow = 0;
-    let tempVoltage = 0;
-    for (let i = 0; i < lastFiveKeys.length; i++) {
-      const key = lastFiveKeys[i];
-      tempCur += mockData[key].current;
-      tempPower += mockData[key].electricalEnergy;
-      tempFlow += mockData[key].flowRate;
-    }
+  }, [allDone]);
 
-    tempCur /= 5;
-    tempPower /= 5;
-    tempPower = parseFloat(tempPower.toFixed(2));
-    tempVoltage = (tempPower * 1000) / tempCur;
-    tempVoltage = parseFloat(tempVoltage.toFixed(2));
-    let tempPressure =
-      0.5 * 1000 * Math.pow(tempFlow / Math.pow(10, 6) / 60 / 0.0000282735, 2);
-    tempPressure = parseFloat(tempPressure.toFixed(2));
-    setAvgCurrent(avgCurrent);
-    setAvgFlowRate(avgFlowRate);
-    setPressure(tempPressure);
-    setInCurrent(tempCur - current);
-    setCurrent(tempCur);
-    setInPower(tempPower - power);
-    setPower(tempPower);
-    setVoltage(tempVoltage);
-    setMockCurrentData(tempCurrent);
-    setMockFlowData(tempFlowRate);
-    setFlowRate(tempFlow);
+  //   id: 4,
+  //   title: "Temperature Rising",
+  //   description: "Motor temperature has increased 10°C in the last hour",
+  //   severity: "error",
+  //   timestamp: "2023-04-01T10:15:00",
+  // },
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (mockCurrentData.at(-1).fil_value > threshold) {
+        setMockAlerts((prevState) => [
+          ...prevState,
+          {
+            id: prevState[prevState.length - 1] + 1,
+            title: "Abnormal Current Level",
+            description: `Current value ${current}`,
+            severity: "warning",
+            timestamp: new Date().toISOString().split(".")[0],
+          },
+        ]);
+      }
+    }, 180000);
+    console.log("Mock Data", mockCurrentData.at(-1));
+    return () => clearInterval(interval);
   }, []);
   return (
     <div className="flex flex-col gap-4 p-4">
@@ -308,7 +341,7 @@ export const Dashboard = () => {
                   key: "fil_value",
                   name: "Filtered",
                   color: "#10b981",
-                  unit: "A",
+                  unit: "mA",
                 },
               ]}
             />
@@ -334,14 +367,28 @@ export const Dashboard = () => {
             <TrendChart
               title="Current Over Time"
               data={mockCurrentData}
-              color="#3b82f6"
-              unit="A"
+              dataKeys={[
+                { key: "value", name: "Original", color: "#3b82f6", unit: "A" },
+                {
+                  key: "fil_value",
+                  name: "Filtered",
+                  color: "#10b981",
+                  unit: "mA",
+                },
+              ]}
             />
             <TrendChart
-              title="Flow Rate Over Time"
+              title="Flow Rate over Time"
               data={mockFlowData}
-              color="#10b981"
-              unit=" L/min"
+              dataKeys={[
+                { key: "value", name: "Original", color: "#3b82f6", unit: "A" },
+                {
+                  key: "fil_value",
+                  name: "Filtered",
+                  color: "#10b981",
+                  unit: "mL/min",
+                },
+              ]}
             />
           </div>
         </TabsContent>
