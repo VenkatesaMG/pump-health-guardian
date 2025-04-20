@@ -140,7 +140,7 @@ export const Dashboard = () => {
         setAllDone(true);
       })
       .catch((error) => console.log(error));
-    console.log("Selected Pump", selectedPump);
+    console.log("")
   }, [selectedPump]);
 
   useEffect(() => {
@@ -217,23 +217,37 @@ export const Dashboard = () => {
   // },
 
   useEffect(() => {
+    if (mockCurrentData.length === 0) return;
     const interval = setInterval(() => {
-      if (mockCurrentData.at(-1).fil_value > threshold) {
-        setMockAlerts((prevState) => [
-          ...prevState,
-          {
-            id: prevState[prevState.length - 1] + 1,
-            title: "Abnormal Current Level",
-            description: `Current value ${current}`,
-            severity: "warning",
-            timestamp: new Date().toISOString().split(".")[0],
-          },
-        ]);
+      const latest = mockCurrentData[mockCurrentData.length - 1];
+      console.log("Latest", latest);
+
+      if (latest?.fil_value > threshold) {
+        setMockAlerts((prevState) => {
+          const newId =
+            prevState.length > 0 ? prevState[prevState.length - 1].id + 1 : 1;
+          const updatedAlerts = [...prevState];
+
+          if (updatedAlerts.length >= 5) {
+            updatedAlerts.shift();
+          }
+
+          return [
+            ...updatedAlerts,
+            {
+              id: newId,
+              title: "Abnormal Current Level",
+              description: `Current value ${latest.fil_value}`,
+              severity: "warning",
+              timestamp: new Date().toISOString().split(".")[0],
+            },
+          ];
+        });
       }
-    }, 180000);
-    console.log("Mock Data", mockCurrentData.at(-1));
+    }, 15000);
+
     return () => clearInterval(interval);
-  }, []);
+  }, [mockCurrentData]);
 
   return (
     <div className="flex flex-col gap-4 p-4">
@@ -278,9 +292,9 @@ export const Dashboard = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <MetricCard
               title="Current"
-              value={current}
+              value={parseFloat(current.toFixed(2))}
               unit="mA"
-              change={inCurrent}
+              change={parseFloat(inCurrent.toFixed(2))}
               trend="up"
               icon={<Zap className="h-4 w-4" />}
             />
@@ -323,7 +337,12 @@ export const Dashboard = () => {
               title="Current Over Time"
               data={mockCurrentData}
               dataKeys={[
-                { key: "value", name: "Original", color: "#3b82f6", unit: "A" },
+                {
+                  key: "value",
+                  name: "Original",
+                  color: "#3b82f6",
+                  unit: "mA",
+                },
                 {
                   key: "fil_value",
                   name: "Filtered",
@@ -360,7 +379,12 @@ export const Dashboard = () => {
               title="Current Over Time"
               data={mockCurrentData}
               dataKeys={[
-                { key: "value", name: "Original", color: "#3b82f6", unit: "A" },
+                {
+                  key: "value",
+                  name: "Original",
+                  color: "#3b82f6",
+                  unit: "mA",
+                },
                 {
                   key: "fil_value",
                   name: "Filtered",
@@ -373,7 +397,12 @@ export const Dashboard = () => {
               title="Flow Rate over Time"
               data={mockFlowData}
               dataKeys={[
-                { key: "value", name: "Original", color: "#3b82f6", unit: "A" },
+                {
+                  key: "value",
+                  name: "Original",
+                  color: "#3b82f6",
+                  unit: "mL/min",
+                },
                 {
                   key: "fil_value",
                   name: "Filtered",
